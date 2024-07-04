@@ -8,8 +8,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CurrencyTableComponent } from './currency-table/currency-table.component';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { CurrencyService } from './currency.service';
 import { HttpClientModule } from '@angular/common/http';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,8 @@ import { HttpClientModule } from '@angular/common/http';
     MatTableModule,
     MatPaginatorModule,
     HttpClientModule,
+    MatInputModule,
+    MatAutocompleteModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
