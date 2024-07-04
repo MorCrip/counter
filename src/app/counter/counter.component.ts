@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormControl } from '@angular/forms'; // Импортируем FormControl
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-counter',
@@ -8,20 +9,23 @@ import { FormControl } from '@angular/forms'; // Импортируем FormCont
 })
 export class CounterComponent {
   public valueControl: FormControl = new FormControl(0);
+  private valueSubscription: Subscription = new Subscription();
 
-  constructor() {
-    this.valueControl.valueChanges.subscribe((newValue) => {
+  ngOnInit() {
+    this.valueSubscription = this.valueControl.valueChanges.subscribe((newValue: number) => {
       console.log(newValue);
     });
   }
 
+  ngOnDestroy() {
+    this.valueSubscription.unsubscribe()
+  }
+
   public increase() {
-    const currentValue = this.valueControl.value;
-    this.valueControl.setValue(currentValue + 1);
+    this.valueControl.setValue(this.valueControl.value + 1);
   }
 
   public decrease() {
-    const currentValue = this.valueControl.value;
-    this.valueControl.setValue(currentValue - 1);
+    this.valueControl.setValue(this.valueControl.value - 1);
   }
 }
