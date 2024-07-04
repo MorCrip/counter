@@ -21,15 +21,16 @@ interface CurrencyData {
   templateUrl: './currency-table.component.html',
   styleUrls: ['./currency-table.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [CurrencyService],
 })
 export class CurrencyTableComponent implements OnInit, OnDestroy {
-  protected dataSource = new MatTableDataSource<CurrencyData>();
-  protected displayedColumns: string[] = ['currency', 'rate'];
-  private destroy$ = new Subject<void>();
+  protected readonly dataSource = new MatTableDataSource<CurrencyData>();
+  protected readonly displayedColumns: readonly string[] = ['currency', 'rate'];
+  private readonly destroy$ = new Subject<void>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private currencyService: CurrencyService) {}
+  constructor(private readonly currencyService: CurrencyService) {}
 
   ngOnInit() {
     this.fetchCurrencyData();

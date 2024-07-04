@@ -9,14 +9,12 @@ export interface ExchangeRateResponse {
   };
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class CurrencyService {
 
-  private apiUrl = 'https://api.coinbase.com/v2/exchange-rates?currency=';
+  private readonly apiUrl = 'https://api.coinbase.com/v2/exchange-rates?currency=';
 
-  constructor(private http: HttpClient) { }
+  constructor(private readonly http: HttpClient) { }
 
   public getExchangeRates(currency: string): Observable<ExchangeRateResponse> {
     return this.http.get<ExchangeRateResponse>(`${this.apiUrl}${currency}`);

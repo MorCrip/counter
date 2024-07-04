@@ -26,7 +26,7 @@ import { HttpClientModule } from '@angular/common/http';
     MatPaginatorModule,
     HttpClientModule,
   ],
-  providers: [CurrencyService],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
