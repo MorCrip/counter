@@ -1,5 +1,5 @@
 <div>
-    <button (click)="decrease()">Уменьшить</button>
-    <input [(ngModel)]="value" type="number">
-    <button (click)="increase()">Увеличить</button>
+  <button (click)="decrease()">Уменьшить</button>
+  <input type="number" [formControl]="valueControl" />
+  <button (click)="increase()">Увеличить</button>
 </div>

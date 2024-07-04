@@ -1,18 +1,27 @@
 import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms'; // Импортируем FormControl
 
 @Component({
   selector: 'app-counter',
   templateUrl: './counter.component.html',
-  styleUrls: ['./counter.component.scss']
+  styleUrls: ['./counter.component.scss'],
 })
 export class CounterComponent {
-  public value: number = 0;
+  public valueControl: FormControl = new FormControl(0);
+
+  constructor() {
+    this.valueControl.valueChanges.subscribe((newValue) => {
+      console.log(newValue);
+    });
+  }
 
   public increase() {
-    this.value = this.value + 1;
+    const currentValue = this.valueControl.value;
+    this.valueControl.setValue(currentValue + 1);
   }
 
   public decrease() {
-    this.value = this.value - 1;
+    const currentValue = this.valueControl.value;
+    this.valueControl.setValue(currentValue - 1);
   }
 }
