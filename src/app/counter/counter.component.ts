@@ -9,8 +9,8 @@ import { takeUntil } from 'rxjs/operators';
   styleUrls: ['./counter.component.scss'],
 })
 export class CounterComponent implements OnInit, OnDestroy {
-  public valueControl: FormControl = new FormControl(0);
-  private destroy$ = new Subject<void>();
+  protected readonly valueControl: FormControl = new FormControl(0);
+  private readonly destroy$ = new Subject<void>();
 
   ngOnInit() {
     this.valueControl.valueChanges
