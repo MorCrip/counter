@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms'; // Импортируем FormControl
+import { FormControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
 @Component({
