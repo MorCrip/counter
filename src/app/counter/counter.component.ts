@@ -1,24 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-counter',
   templateUrl: './counter.component.html',
   styleUrls: ['./counter.component.scss'],
 })
-export class CounterComponent {
+export class CounterComponent implements OnInit, OnDestroy {
   public valueControl: FormControl = new FormControl(0);
-  private valueSubscription: Subscription = new Subscription();
+  private destroy$ = new Subject<void>();
 
   ngOnInit() {
-    this.valueSubscription = this.valueControl.valueChanges.subscribe((newValue: number) => {
-      console.log(newValue);
-    });
+    this.valueControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((newValue: number) => {
+        console.log(newValue);
+      });
   }
 
   ngOnDestroy() {
-    this.valueSubscription.unsubscribe()
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public increase() {
