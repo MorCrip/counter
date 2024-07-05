@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface ExchangeRateResponse {
   data: {
@@ -9,14 +10,41 @@ export interface ExchangeRateResponse {
   };
 }
 
-export interface CbrCurrencyResponse {
-  Valute: {
-    [key: string]: {
-      CharCode: string;
-      Name: string;
-      Value: number;
-    };
-  };
+export interface Valute {
+  CharCode: string;
+  Name: string;
+  Value: number;
+}
+
+export interface CbrCurrencyData {
+  Valute: { [key: string]: Valute };
+  Date: string;
+}
+
+export interface Currency {
+  display: string;
+  value: Valute;
+}
+
+export class CbrCurrencyResponse {
+  private _currencies: Valute[];
+  private _responseTime: Date;
+
+  constructor(data: CbrCurrencyData) {
+    this._responseTime = new Date(data.Date);
+    this._currencies = Object.values(data.Valute);
+  }
+
+  public get currencies(): Currency[] {
+    return this._currencies.map((valute) => ({
+      display: `${valute.CharCode} - ${valute.Name}`,
+      value: valute,
+    }));
+  }
+
+  public get responseTime(): Date {
+    return this._responseTime;
+  }
 }
 
 @Injectable()
@@ -34,6 +62,10 @@ export class CurrencyService {
   }
 
   public getCbrCurrencies(): Observable<CbrCurrencyResponse> {
-    return this.http.get<CbrCurrencyResponse>(this.cbrApiUrl);
+    return this.http
+      .get<CbrCurrencyData>(this.cbrApiUrl)
+      .pipe(
+        map((response: CbrCurrencyData) => new CbrCurrencyResponse(response))
+      );
   }
 }

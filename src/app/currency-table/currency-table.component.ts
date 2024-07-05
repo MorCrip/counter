@@ -4,18 +4,19 @@ import {
   OnDestroy,
   ViewChild,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { FormControl } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
-import { startWith, map, takeUntil } from 'rxjs/operators';
+import { Observable, Subject, of } from 'rxjs';
+import { map, takeUntil, switchMap, startWith } from 'rxjs/operators';
 import {
+  Currency,
   CurrencyService,
   ExchangeRateResponse,
   CbrCurrencyResponse,
 } from '../currency.service';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 interface CurrencyData {
   currency: string;
@@ -26,79 +27,101 @@ interface CurrencyData {
   selector: 'app-currency-table',
   templateUrl: './currency-table.component.html',
   styleUrls: ['./currency-table.component.scss'],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CurrencyService],
 })
 export class CurrencyTableComponent implements OnInit, OnDestroy {
+  @ViewChild(MatPaginator) paginator: MatPaginator | null = null;
+
   protected readonly dataSource = new MatTableDataSource<CurrencyData>();
-  protected readonly displayedColumns: readonly string[] = ['currency', 'rate'];
+  protected readonly displayedColumns: readonly string[] = [
+    'currency',
+    'rate',
+    'requestTime',
+  ];
   private readonly destroy$ = new Subject<void>();
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
   protected readonly currencyControl = new FormControl();
-  protected filteredCurrencies!: Observable<
-    { CharCode: string; Name: string }[]
-  >;
-  protected currencies: { CharCode: string; Name: string }[] = [];
+  protected filteredCurrencies!: Observable<Currency[]>;
+  protected currencies: Currency[] = [];
+  protected responseTime$!: Observable<Date>;
   protected selectedCurrencyName: string | null = null;
 
-  constructor(private readonly currencyService: CurrencyService) {}
+  constructor(
+    private readonly currencyService: CurrencyService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.fetchCurrencies();
+    this.setupCurrencySelection();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private fetchCurrencyData(charCode: string) {
-    this.currencyService
-      .getExchangeRates(charCode)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((response: ExchangeRateResponse) => {
-        this.dataSource.data = Object.entries(response.data.rates).map(
-          ([currency, rate]) => ({ currency, rate: +rate } as CurrencyData)
-        );
-        setTimeout(() => {
-          if (this.paginator) {
-            this.dataSource.paginator = this.paginator;
-          }
-        });
-      });
-  }
-
-  private fetchCurrencies() {
+  private fetchCurrencies(): void {
     this.currencyService
       .getCbrCurrencies()
       .pipe(takeUntil(this.destroy$))
       .subscribe((response: CbrCurrencyResponse) => {
-        this.currencies = Object.values(response.Valute);
+        this.currencies = response.currencies;
+        this.responseTime$ = of(response.responseTime);
         this.filteredCurrencies = this.currencyControl.valueChanges.pipe(
           startWith(''),
-          map((value) => this.filterCurrencies(value))
+          map((value: string) => this.filterCurrencies(value))
         );
       });
   }
 
-  private filterCurrencies(
-    value: string
-  ): { CharCode: string; Name: string }[] {
-    const filterValue = value.toLowerCase();
-    return this.currencies.filter((currency) =>
-      currency.Name.toLowerCase().includes(filterValue)
-    );
+  private setupCurrencySelection(): void {
+    this.currencyControl.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap((currencyDisplay: string) => {
+          const selectedCurrency = this.currencies.find(
+            (currency) => currency.display === currencyDisplay
+          );
+          if (selectedCurrency) {
+            this.selectedCurrencyName = selectedCurrency.value.Name;
+            return this.currencyService
+              .getExchangeRates(selectedCurrency.value.CharCode)
+              .pipe(
+                map((response) => ({
+                  response,
+                  requestTime: new Date(),
+                }))
+              );
+          } else {
+            return of(null);
+          }
+        })
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.dataSource.data = Object.entries(result.response.data.rates).map(
+            ([currency, rate]) => ({
+              currency,
+              rate: +rate,
+            } as CurrencyData)
+          );
+
+          this.responseTime$ = of(result.requestTime);
+
+          if (this.paginator) {
+            this.dataSource.paginator = this.paginator;
+          }
+          this.cdr.markForCheck();
+        }
+      });
   }
 
-  protected onCurrencySelected(event: MatAutocompleteSelectedEvent) {
-    const selectedCurrency = this.currencies.find(
-      (currency) => currency.Name === event.option.value
+  private filterCurrencies(value: string): Currency[] {
+    const filterValue = value.toLowerCase();
+    return this.currencies.filter((currency) =>
+      currency.display.toLowerCase().includes(filterValue)
     );
-    if (selectedCurrency) {
-      this.selectedCurrencyName = selectedCurrency.Name;
-      this.fetchCurrencyData(selectedCurrency.CharCode);
-    }
   }
 }
