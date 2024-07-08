@@ -6,5 +6,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'counter';
+  protected readonly title = 'Таблица курс к валюте';
+
+  public handleFilterChange(): void {
+    alert('Фильтр изменился');
+  }
 }

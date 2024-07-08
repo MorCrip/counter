@@ -5,6 +5,9 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  Input,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -32,6 +35,8 @@ interface CurrencyData {
 })
 export class CurrencyTableComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator | null = null;
+  @Input() title: string | null = null;
+  @Output() handleFilterChange: EventEmitter<void> = new EventEmitter<void>();
 
   protected readonly dataSource = new MatTableDataSource<CurrencyData>();
   protected readonly displayedColumns: readonly string[] = [
@@ -71,7 +76,12 @@ export class CurrencyTableComponent implements OnInit, OnDestroy {
         this.responseTime$ = of(response.responseTime);
         this.filteredCurrencies = this.currencyControl.valueChanges.pipe(
           startWith(''),
-          map((value: string) => this.filterCurrencies(value))
+          map((value: string) => {
+            if (value !== '') {
+              this.handleFilterChange.emit();
+            }
+            return this.filterCurrencies(value);
+          })
         );
       });
   }
@@ -102,10 +112,11 @@ export class CurrencyTableComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         if (result) {
           this.dataSource.data = Object.entries(result.response.data.rates).map(
-            ([currency, rate]) => ({
-              currency,
-              rate: +rate,
-            } as CurrencyData)
+            ([currency, rate]) =>
+              ({
+                currency,
+                rate: +rate,
+              } as CurrencyData)
           );
 
           this.responseTime$ = of(result.requestTime);
