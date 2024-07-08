@@ -35,8 +35,8 @@ interface CurrencyData {
 })
 export class CurrencyTableComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator | null = null;
-  @Input() title: string | null = null;
-  @Output() handleFilterChange: EventEmitter<void> = new EventEmitter<void>();
+  @Input() public title: string | null = null;
+  @Output() public handleFilterChange: EventEmitter<void> = new EventEmitter<void>();
 
   protected readonly dataSource = new MatTableDataSource<CurrencyData>();
   protected readonly displayedColumns: readonly string[] = [
