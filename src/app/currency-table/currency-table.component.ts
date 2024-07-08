@@ -4,12 +4,19 @@ import {
   OnDestroy,
   ViewChild,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { CurrencyService, ExchangeRateResponse } from '../currency.service';
+import { FormControl } from '@angular/forms';
+import { Observable, Subject, of } from 'rxjs';
+import { map, takeUntil, switchMap, startWith } from 'rxjs/operators';
+import {
+  Currency,
+  CurrencyService,
+  ExchangeRateResponse,
+  CbrCurrencyResponse,
+} from '../currency.service';
 
 interface CurrencyData {
   currency: string;
@@ -24,34 +31,97 @@ interface CurrencyData {
   providers: [CurrencyService],
 })
 export class CurrencyTableComponent implements OnInit, OnDestroy {
+  @ViewChild(MatPaginator) paginator: MatPaginator | null = null;
+
   protected readonly dataSource = new MatTableDataSource<CurrencyData>();
-  protected readonly displayedColumns: readonly string[] = ['currency', 'rate'];
+  protected readonly displayedColumns: readonly string[] = [
+    'currency',
+    'rate',
+    'requestTime',
+  ];
   private readonly destroy$ = new Subject<void>();
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  protected readonly currencyControl = new FormControl();
+  protected filteredCurrencies!: Observable<Currency[]>;
+  protected currencies: Currency[] = [];
+  protected responseTime$!: Observable<Date>;
+  protected selectedCurrencyName: string | null = null;
 
-  constructor(private readonly currencyService: CurrencyService) {}
+  constructor(
+    private readonly currencyService: CurrencyService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
 
-  ngOnInit() {
-    this.fetchCurrencyData();
+  ngOnInit(): void {
+    this.fetchCurrencies();
+    this.setupCurrencySelection();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private fetchCurrencyData() {
+  private fetchCurrencies(): void {
     this.currencyService
-      .getExchangeRates('USD')
+      .getCbrCurrencies()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(
-        (response: ExchangeRateResponse) => {
-          this.dataSource.data = Object.entries(response.data.rates).map(
-            ([currency, rate]) => ({ currency, rate: +rate } as CurrencyData)
+      .subscribe((response: CbrCurrencyResponse) => {
+        this.currencies = response.currencies;
+        this.responseTime$ = of(response.responseTime);
+        this.filteredCurrencies = this.currencyControl.valueChanges.pipe(
+          startWith(''),
+          map((value: string) => this.filterCurrencies(value))
+        );
+      });
+  }
+
+  private setupCurrencySelection(): void {
+    this.currencyControl.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap((currencyDisplay: string) => {
+          const selectedCurrency = this.currencies.find(
+            (currency) => currency.display === currencyDisplay
           );
-          this.dataSource.paginator = this.paginator;
-        },
-      );
+          if (selectedCurrency) {
+            this.selectedCurrencyName = selectedCurrency.value.Name;
+            return this.currencyService
+              .getExchangeRates(selectedCurrency.value.CharCode)
+              .pipe(
+                map((response) => ({
+                  response,
+                  requestTime: new Date(),
+                }))
+              );
+          } else {
+            return of(null);
+          }
+        })
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.dataSource.data = Object.entries(result.response.data.rates).map(
+            ([currency, rate]) => ({
+              currency,
+              rate: +rate,
+            } as CurrencyData)
+          );
+
+          this.responseTime$ = of(result.requestTime);
+
+          if (this.paginator) {
+            this.dataSource.paginator = this.paginator;
+          }
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private filterCurrencies(value: string): Currency[] {
+    const filterValue = value.toLowerCase();
+    return this.currencies.filter((currency) =>
+      currency.display.toLowerCase().includes(filterValue)
+    );
   }
 }
