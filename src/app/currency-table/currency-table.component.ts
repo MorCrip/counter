@@ -5,9 +5,13 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  Input,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 import { FormControl } from '@angular/forms';
 import { Observable, Subject, of } from 'rxjs';
 import { map, takeUntil, switchMap, startWith } from 'rxjs/operators';
@@ -32,6 +36,9 @@ interface CurrencyData {
 })
 export class CurrencyTableComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator | null = null;
+  @ViewChild(MatSort) sort: MatSort | null = null;
+  @Input() public title: string | null = null;
+  @Output() public handleFilterChange: EventEmitter<void> = new EventEmitter<void>();
 
   protected readonly dataSource = new MatTableDataSource<CurrencyData>();
   protected readonly displayedColumns: readonly string[] = [
@@ -71,7 +78,12 @@ export class CurrencyTableComponent implements OnInit, OnDestroy {
         this.responseTime$ = of(response.responseTime);
         this.filteredCurrencies = this.currencyControl.valueChanges.pipe(
           startWith(''),
-          map((value: string) => this.filterCurrencies(value))
+          map((value: string) => {
+            if (value !== '') {
+              this.handleFilterChange.emit();
+            }
+            return this.filterCurrencies(value);
+          })
         );
       });
   }
@@ -102,16 +114,20 @@ export class CurrencyTableComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         if (result) {
           this.dataSource.data = Object.entries(result.response.data.rates).map(
-            ([currency, rate]) => ({
-              currency,
-              rate: +rate,
-            } as CurrencyData)
+            ([currency, rate]) =>
+              ({
+                currency,
+                rate: +rate,
+              } as CurrencyData)
           );
 
           this.responseTime$ = of(result.requestTime);
 
           if (this.paginator) {
             this.dataSource.paginator = this.paginator;
+          }
+          if (this.sort) { 
+            this.dataSource.sort = this.sort;
           }
           this.cdr.markForCheck();
         }
