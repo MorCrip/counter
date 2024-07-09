@@ -1,0 +1,78 @@
+<form [formGroup]="diagnosisForm" (ngSubmit)="onSubmit()">
+  <div class="form-row">
+    <mat-form-field appearance="fill">
+      <mat-label>Тип диагноза</mat-label>
+      <input type="text" matInput formControlName="diagnosisType" [matAutocomplete]="autoDiagnosisType">
+      <mat-autocomplete #autoDiagnosisType="matAutocomplete">
+        <mat-option *ngFor="let type of filteredDiagnosisTypes$ | async" [value]="type.Code">
+          {{ type.Code }} - {{ type.Name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Диагноз</mat-label>
+      <input type="text" matInput formControlName="diagnosis" [matAutocomplete]="autoDiagnosis">
+      <mat-autocomplete #autoDiagnosis="matAutocomplete">
+        <mat-option *ngFor="let disease of diseases$ | async" [value]="disease.Code">
+          {{ disease.Code }} - {{ disease.Name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Характер заболевания</mat-label>
+      <input type="text" matInput formControlName="diseaseCharacter" [matAutocomplete]="autoDiseaseCharacter">
+      <mat-autocomplete #autoDiseaseCharacter="matAutocomplete">
+        <mat-option *ngFor="let character of filteredDiseaseCharacters$ | async" [value]="character.Code">
+          {{ character.Code }} - {{ character.Name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Дата</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="date">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field appearance="fill">
+      <mat-label>Диспансерный учет</mat-label>
+      <input type="text" matInput formControlName="dispensaryAccount" [matAutocomplete]="autoDispensaryAccount">
+      <mat-autocomplete #autoDispensaryAccount="matAutocomplete">
+        <mat-option *ngFor="let account of filteredDispensaryAccounts$ | async" [value]="account.Code">
+          {{ account.Code }} - {{ account.Name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Травма</mat-label>
+      <input matInput formControlName="trauma">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Внешняя причина</mat-label>
+      <input matInput formControlName="externalCause">
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field appearance="fill">
+      <mat-label>Клинический диагноз</mat-label>
+      <input matInput formControlName="clinicalDiagnosis">
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field appearance="fill">
+      <mat-label>Комментарий</mat-label>
+      <input matInput formControlName="comment">
+    </mat-form-field>
+  </div>
+
+  <button mat-raised-button color="primary" type="submit">Сохранить</button>
+</form>

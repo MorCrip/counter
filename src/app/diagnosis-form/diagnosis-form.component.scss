@@ -1,0 +1,42 @@
+form {
+  padding: 10px;
+
+  .form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  button {
+    color: black;
+    background: white;
+    font-weight: 400;
+    border: 1px solid #39bfde;
+    border-radius: 6px;
+    padding: 0 30px;
+    font-size: 16px;
+    height: 40px;
+  }
+
+  button:hover {
+    color: white;
+    background: #39bfde;
+  }
+}
+
+::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: white;
+}
+
+::ng-deep .mdc-text-field--disabled.mdc-text-field--filled {
+  background-color: white;
+}
+
+::ng-deep .mdc-text-field--disabled .mdc-line-ripple::before {
+  border-bottom-style: dashed;
+  border-bottom-color: black;
+}
