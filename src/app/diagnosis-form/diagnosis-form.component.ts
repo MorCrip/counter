@@ -1,44 +1,52 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { DiseaseService } from '../disease-service.service';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, map } from 'rxjs/operators';
+import { ValueDictionary } from '../shared/model/value-dictionary';
 
-interface ValueDictionary {
-  id: number;
-  Code: string;
-  Name: string;
+interface DiagnosisForm {
+  diagnosisType: FormControl<string | null>;
+  diagnosis: FormControl<string | null>;
+  diseaseCharacter: FormControl<string | null>;
+  date: FormControl<string | null>;
+  dispensaryAccount: FormControl<string | null>;
+  trauma: FormControl<string | null>;
+  externalCause: FormControl<string | null>;
+  clinicalDiagnosis: FormControl<string | null>;
+  comment: FormControl<string | null>;
 }
 
 @Component({
   selector: 'app-diagnosis-form',
   templateUrl: './diagnosis-form.component.html',
   styleUrls: ['./diagnosis-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [DiseaseService]
 })
 export class DiagnosisFormComponent implements OnInit {
-  protected readonly diagnosisForm: FormGroup;
+  protected readonly diagnosisForm: FormGroup<DiagnosisForm>;
 
   protected readonly diagnosisTypes: ValueDictionary[] = [
-    { id: 1, Code: '1', Name: 'Основной' },
-    { id: 2, Code: '2', Name: 'Осложнение основного' },
-    { id: 3, Code: '3', Name: 'Сопутствующий' },
-    { id: 4, Code: '4', Name: 'Конкурирующий' },
-    { id: 5, Code: '5', Name: 'Внешняя причина' }
+    new ValueDictionary(1, '1', 'Основной'),
+    new ValueDictionary(2, '2', 'Осложнение основного'),
+    new ValueDictionary(3, '3', 'Сопутствующий'),
+    new ValueDictionary(4, '4', 'Конкурирующий'),
+    new ValueDictionary(5, '5', 'Внешняя причина')
   ];
 
   protected readonly diseaseCharacters: ValueDictionary[] = [
-    { id: 1, Code: '1', Name: 'Острое' },
-    { id: 2, Code: '2', Name: 'Впервые в жизни установлено' },
-    { id: 3, Code: '3', Name: 'Ранее установлено хроническое' }
+    new ValueDictionary(1, '1', 'Острое'),
+    new ValueDictionary(2, '2', 'Впервые в жизни установлено'),
+    new ValueDictionary(3, '3', 'Ранее установлено хроническое')
   ];
 
   protected readonly dispensaryAccounts: ValueDictionary[] = [
-    { id: 1, Code: '1', Name: 'Состоит' },
-    { id: 2, Code: '2', Name: 'Взят' },
-    { id: 3, Code: '3', Name: 'Снят' },
-    { id: 4, Code: '4', Name: 'Снят по причине выздоровления' },
-    { id: 6, Code: '6', Name: 'Снят по другим причинам' }
+    new ValueDictionary(1, '1', 'Состоит'),
+    new ValueDictionary(2, '2', 'Взят'),
+    new ValueDictionary(3, '3', 'Снят'),
+    new ValueDictionary(4, '4', 'Снят по причине выздоровления'),
+    new ValueDictionary(6, '6', 'Снят по другим причинам')
   ];
 
   protected diseases$: Observable<ValueDictionary[]>;
@@ -47,16 +55,16 @@ export class DiagnosisFormComponent implements OnInit {
   protected filteredDispensaryAccounts$: Observable<ValueDictionary[]>;
 
   constructor(private readonly fb: FormBuilder, private readonly diseaseService: DiseaseService) {
-    this.diagnosisForm = this.fb.group({
-      diagnosisType: ['', Validators.required],
-      diagnosis: ['', Validators.required],
-      diseaseCharacter: ['', Validators.required],
-      date: ['', Validators.required],
-      dispensaryAccount: ['', Validators.required],
-      trauma: ['', Validators.required],
-      externalCause: [{ value: '', disabled: true }],
-      clinicalDiagnosis: ['', Validators.required],
-      comment: ['', Validators.required]
+    this.diagnosisForm = this.fb.group<DiagnosisForm>({
+      diagnosisType: this.fb.control<string | null>(null, Validators.required),
+      diagnosis: this.fb.control<string | null>(null, Validators.required),
+      diseaseCharacter: this.fb.control<string | null>(null, Validators.required),
+      date: this.fb.control<string | null>(null, Validators.required),
+      dispensaryAccount: this.fb.control<string | null>(null, Validators.required),
+      trauma: this.fb.control<string | null>(null, Validators.required),
+      externalCause: this.fb.control<string | null>({ value: null, disabled: true }),
+      clinicalDiagnosis: this.fb.control<string | null>(null, Validators.required),
+      comment: this.fb.control<string | null>(null, Validators.required)
     });
 
     this.diseases$ = of([]);
@@ -65,23 +73,23 @@ export class DiagnosisFormComponent implements OnInit {
     this.filteredDispensaryAccounts$ = of(this.dispensaryAccounts);
   }
 
-  ngOnInit(): void {
-    this.diagnosisForm.get('dispensaryAccount')?.valueChanges.subscribe(value => {
-      const externalCauseControl = this.diagnosisForm.get('externalCause');
+  public ngOnInit(): void {
+    this.diagnosisForm.controls.dispensaryAccount.valueChanges.subscribe(value => {
+      const externalCauseControl = this.diagnosisForm.controls.externalCause;
       if (value === '1') {
-        externalCauseControl?.enable();
-        externalCauseControl?.setValidators(Validators.required);
+        externalCauseControl.enable();
+        externalCauseControl.setValidators(Validators.required);
       } else {
-        externalCauseControl?.disable();
-        externalCauseControl?.clearValidators();
+        externalCauseControl.disable();
+        externalCauseControl.clearValidators();
       }
-      externalCauseControl?.updateValueAndValidity();
+      externalCauseControl.updateValueAndValidity();
     });
 
-    this.diagnosisForm.get('diagnosis')?.valueChanges.pipe(
+    this.diagnosisForm.controls.diagnosis.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(value => {
+      switchMap((value: string | null) => {
         if (value && value.length > 1) {
           return this.diseaseService.searchDiseasesByCode(value);
         } else {
@@ -92,25 +100,25 @@ export class DiagnosisFormComponent implements OnInit {
       this.diseases$ = of(diseases);
     });
 
-    this.filteredDiagnosisTypes$ = this.diagnosisForm.get('diagnosisType')!.valueChanges.pipe(
+    this.filteredDiagnosisTypes$ = this.diagnosisForm.controls.diagnosisType.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value, this.diagnosisTypes))
     );
 
-    this.filteredDiseaseCharacters$ = this.diagnosisForm.get('diseaseCharacter')!.valueChanges.pipe(
+    this.filteredDiseaseCharacters$ = this.diagnosisForm.controls.diseaseCharacter.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value, this.diseaseCharacters))
     );
 
-    this.filteredDispensaryAccounts$ = this.diagnosisForm.get('dispensaryAccount')!.valueChanges.pipe(
+    this.filteredDispensaryAccounts$ = this.diagnosisForm.controls.dispensaryAccount.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value, this.dispensaryAccounts))
     );
   }
 
-  private _filter(value: string, options: ValueDictionary[]): ValueDictionary[] {
-    const filterValue = value.toLowerCase();
-    return options.filter(option => option.Name.toLowerCase().includes(filterValue));
+  private _filter(value: string | null, options: ValueDictionary[]): ValueDictionary[] {
+    const filterValue = value ? value.toLowerCase() : '';
+    return options.filter(option => option.formattedValue.toLowerCase().includes(filterValue));
   }
 
   protected onSubmit(): void {
@@ -119,5 +127,41 @@ export class DiagnosisFormComponent implements OnInit {
     } else {
       console.log('Ошибка валидации');
     }
+  }
+
+  protected get diagnosisType() {
+    return this.diagnosisForm.controls.diagnosisType;
+  }
+
+  protected get diagnosis() {
+    return this.diagnosisForm.controls.diagnosis;
+  }
+
+  protected get diseaseCharacter() {
+    return this.diagnosisForm.controls.diseaseCharacter;
+  }
+
+  protected get date() {
+    return this.diagnosisForm.controls.date;
+  }
+
+  protected get dispensaryAccount() {
+    return this.diagnosisForm.controls.dispensaryAccount;
+  }
+
+  protected get trauma() {
+    return this.diagnosisForm.controls.trauma;
+  }
+
+  protected get externalCause() {
+    return this.diagnosisForm.controls.externalCause;
+  }
+
+  protected get clinicalDiagnosis() {
+    return this.diagnosisForm.controls.clinicalDiagnosis;
+  }
+
+  protected get comment() {
+    return this.diagnosisForm.controls.comment;
   }
 }

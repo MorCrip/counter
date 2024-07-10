@@ -28,15 +28,15 @@ form {
   }
 }
 
-::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+:host ::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled) {
   background-color: white;
 }
 
-::ng-deep .mdc-text-field--disabled.mdc-text-field--filled {
+:host ::ng-deep .mdc-text-field--disabled.mdc-text-field--filled {
   background-color: white;
 }
 
-::ng-deep .mdc-text-field--disabled .mdc-line-ripple::before {
+:host ::ng-deep .mdc-text-field--disabled .mdc-line-ripple::before {
   border-bottom-style: dashed;
   border-bottom-color: black;
 }
