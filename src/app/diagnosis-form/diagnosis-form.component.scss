@@ -5,6 +5,10 @@ form {
     display: flex;
     gap: 16px;
     margin-bottom: 16px;
+    
+    & > * {
+      flex: 1 1 0;
+    }
   }
 
   mat-form-field {
@@ -39,4 +43,14 @@ form {
 :host ::ng-deep .mdc-text-field--disabled .mdc-line-ripple::before {
   border-bottom-style: dashed;
   border-bottom-color: black;
+}
+
+app-autocomplete {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  mat-form-field {
+    width: 100%;
+  }
 }
