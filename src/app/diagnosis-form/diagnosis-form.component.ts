@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -6,12 +6,13 @@ import {
   Validators,
 } from '@angular/forms';
 import { DiseaseService } from '../disease-service.service';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
   switchMap,
   catchError,
+  takeUntil,
 } from 'rxjs/operators';
 import { ValueDictionary } from '../shared/model/value-dictionary';
 
@@ -34,7 +35,7 @@ interface DiagnosisForm {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [DiseaseService],
 })
-export class DiagnosisFormComponent implements OnInit {
+export class DiagnosisFormComponent implements OnInit, OnDestroy {
   protected readonly diagnosisForm: FormGroup<DiagnosisForm>;
 
   protected readonly diagnosisTypes: ValueDictionary[] = [
@@ -60,6 +61,8 @@ export class DiagnosisFormComponent implements OnInit {
   ];
 
   protected diseases$: Observable<ValueDictionary[]> = of([]);
+
+  private readonly _destroy$ = new Subject<void>();
 
   constructor(
     private readonly fb: FormBuilder,
@@ -90,7 +93,7 @@ export class DiagnosisFormComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.diagnosisForm.controls.dispensaryAccount.valueChanges.subscribe(
       (value) => {
         const externalCauseControl = this.diagnosisForm.controls.externalCause;
@@ -110,14 +113,20 @@ export class DiagnosisFormComponent implements OnInit {
         debounceTime(300),
         distinctUntilChanged(),
         switchMap((value: string | null) => this.searchDiseases(value)),
-        catchError(() => of([]))
+        catchError(() => of([])),
+        takeUntil(this._destroy$)
       )
       .subscribe((diseases) => {
         this.diseases$ = of(diseases);
       });
   }
 
-  searchDiseases(query: string | null): Observable<ValueDictionary[]> {
+  public ngOnDestroy(): void {
+    this._destroy$.next();
+    this._destroy$.complete();
+  }
+
+  protected searchDiseases(query: string | null): Observable<ValueDictionary[]> {
     if (query && query.length > 1) {
       return this.diseaseService
         .searchDiseasesByCode(query)

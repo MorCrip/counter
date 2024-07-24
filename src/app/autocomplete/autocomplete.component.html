@@ -22,7 +22,7 @@
   >
     <mat-icon>arrow_drop_down</mat-icon>
   </button>
-  <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)">
+  <mat-autocomplete #auto="matAutocomplete">
     <mat-option
       *ngFor="let option of filteredOptions$ | async"
       [value]="option.formattedValue"

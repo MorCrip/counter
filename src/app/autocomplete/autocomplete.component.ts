@@ -5,6 +5,7 @@ import {
   Inject,
   Injector,
   Input,
+  OnDestroy,
   OnInit,
 } from '@angular/core';
 import {
@@ -16,7 +17,14 @@ import {
   NgControl,
   Validators,
 } from '@angular/forms';
-import { distinctUntilChanged, Observable, of, Subject, takeUntil, tap } from 'rxjs';
+import {
+  distinctUntilChanged,
+  Observable,
+  of,
+  Subject,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { ValueDictionary } from '../shared/model/value-dictionary';
 
 @Component({
@@ -32,10 +40,14 @@ import { ValueDictionary } from '../shared/model/value-dictionary';
     },
   ],
 })
-export class AutocompleteComponent implements ControlValueAccessor, OnInit {
-  @Input() public options: ValueDictionary[] | ((query: string) => Observable<ValueDictionary[]>) = [];
+export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnDestroy {
+  @Input() public options:
+    | ValueDictionary[]
+    | ((query: string) => Observable<ValueDictionary[]>) = [];
   @Input() public label: string | null = null;
-  @Input() public inputId: string = `autocomplete-${Math.random().toString(36).substr(2, 9)}`;
+  @Input() public inputId: string = `autocomplete-${Math.random()
+    .toString(36)
+    .substr(2, 9)}`;
 
   protected control: FormControl = new FormControl();
   protected isRequired: boolean = false;
@@ -55,14 +67,19 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit {
     this.control.valueChanges
       .pipe(
         distinctUntilChanged(),
-        takeUntil(this._destroy$),
-        tap(value => {
+        tap((value) => {
           this._onChange(value);
           this._onTouched();
           this.updateFilteredOptions(value);
-        })
+        }),
+        takeUntil(this._destroy$)
       )
       .subscribe();
+  }
+
+  public ngOnDestroy(): void {
+    this._destroy$.next();
+    this._destroy$.complete();
   }
 
   private setFormControl(): void {
@@ -82,7 +99,7 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit {
   }
 
   public writeValue(value: string | null): void {
-    this._onChange(value ?? '')
+    this.control.setValue(value ?? '', {emitEvent: false});
   }
 
   public registerOnChange(fn: (value: string | null) => void): void {
@@ -103,16 +120,13 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit {
   }
 
   protected clear(): void {
-    this.control.setValue('');
-  }
-
-  protected onOptionSelected(event: { option: { value: string } }): void {
-    const selectedValue = event.option.value;
-    this.control.setValue(selectedValue);
+    this.control.setValue('', {emitEvent: false});
   }
 
   protected openAutocomplete(): void {
-    const inputElement = document.getElementById(this.inputId) as HTMLInputElement;
+    const inputElement = document.getElementById(
+      this.inputId
+    ) as HTMLInputElement;
     if (inputElement) {
       inputElement.focus();
       inputElement.dispatchEvent(new Event('input'));
@@ -133,7 +147,7 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit {
       this.filteredOptions$ = this.options(query);
     } else {
       this.filteredOptions$ = of(
-        (this.options as ValueDictionary[]).filter(option =>
+        (this.options as ValueDictionary[]).filter((option) =>
           option.formattedValue.toLowerCase().includes(query.toLowerCase())
         )
       );
