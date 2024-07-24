@@ -1,19 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  forwardRef,
-  Inject,
-  Injector,
   Input,
   OnDestroy,
   OnInit,
+  Optional,
+  Self,
 } from '@angular/core';
 import {
   ControlValueAccessor,
   FormControl,
-  FormControlName,
-  FormGroupDirective,
-  NG_VALUE_ACCESSOR,
   NgControl,
   Validators,
 } from '@angular/forms';
@@ -25,25 +21,21 @@ import {
   takeUntil,
   tap,
 } from 'rxjs';
-import { ValueDictionary } from '../shared/model/value-dictionary';
+
+interface Formattable {
+  formattedValue: string;
+}
 
 @Component({
   selector: 'app-autocomplete',
   templateUrl: './autocomplete.component.html',
   styleUrls: ['./autocomplete.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => AutocompleteComponent),
-      multi: true,
-    },
-  ],
 })
-export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnDestroy {
-  @Input() public options:
-    | ValueDictionary[]
-    | ((query: string) => Observable<ValueDictionary[]>) = [];
+export class AutocompleteComponent<T extends Formattable>
+  implements ControlValueAccessor, OnInit, OnDestroy
+{
+  @Input() public options: T[] | ((query: string) => Observable<T[]>) = [];
   @Input() public label: string | null = null;
   @Input() public inputId: string = `autocomplete-${Math.random()
     .toString(36)
@@ -51,18 +43,24 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnDe
 
   protected control: FormControl = new FormControl();
   protected isRequired: boolean = false;
-  protected filteredOptions$: Observable<ValueDictionary[]> = of([]);
+  protected filteredOptions$: Observable<T[]> = of([]);
 
   private _isDisabled: boolean = false;
   private readonly _destroy$ = new Subject<void>();
   private _onChange: (value: string | null) => void = () => {};
   private _onTouched: () => void = () => {};
 
-  constructor(@Inject(Injector) private readonly _injector: Injector) {}
+  constructor(@Optional() @Self() private readonly ngControl: NgControl) {
+    if (this.ngControl) {
+      this.ngControl.valueAccessor = this;
+    }
+  }
 
   public ngOnInit(): void {
     this.setFormControl();
     this.isRequired = this.control?.hasValidator(Validators.required) ?? false;
+
+    this.updateFilteredOptions('');
 
     this.control.valueChanges
       .pipe(
@@ -83,23 +81,15 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnDe
   }
 
   private setFormControl(): void {
-    try {
-      const formControl = this._injector.get(NgControl);
-
-      if (formControl instanceof FormControlName) {
-        this.control = this._injector
-          .get(FormGroupDirective)
-          .getControl(formControl as FormControlName);
-      } else if (formControl instanceof FormControl) {
-        this.control = formControl as FormControl;
-      }
-    } catch (err) {
+    if (this.ngControl) {
+      this.control = this.ngControl.control as FormControl;
+    } else {
       this.control = new FormControl();
     }
   }
 
   public writeValue(value: string | null): void {
-    this.control.setValue(value ?? '', {emitEvent: false});
+    this.control.setValue(value ?? '', { emitEvent: false });
   }
 
   public registerOnChange(fn: (value: string | null) => void): void {
@@ -120,7 +110,7 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnDe
   }
 
   protected clear(): void {
-    this.control.setValue('', {emitEvent: false});
+    this.control.setValue('', { emitEvent: false });
   }
 
   protected openAutocomplete(): void {
@@ -138,7 +128,7 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnDe
       if (typeof this.options === 'function') {
         this.filteredOptions$ = this.options('');
       } else {
-        this.filteredOptions$ = of(this.options as ValueDictionary[]);
+        this.filteredOptions$ = of(this.options as T[]);
       }
       return;
     }
@@ -147,7 +137,7 @@ export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnDe
       this.filteredOptions$ = this.options(query);
     } else {
       this.filteredOptions$ = of(
-        (this.options as ValueDictionary[]).filter((option) =>
+        (this.options as T[]).filter((option) =>
           option.formattedValue.toLowerCase().includes(query.toLowerCase())
         )
       );
