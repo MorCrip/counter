@@ -1,76 +1,64 @@
 <form [formGroup]="diagnosisForm" (ngSubmit)="onSubmit()">
   <div class="form-row">
-    <mat-form-field appearance="fill">
-      <mat-label>Тип диагноза</mat-label>
-      <input matInput type="text" [formControl]="diagnosisType" [matAutocomplete]="autoDiagnosisType">
-      <mat-autocomplete #autoDiagnosisType="matAutocomplete">
-        <mat-option *ngFor="let type of filteredDiagnosisTypes$ | async" [value]="type.formattedValue">
-          {{ type.formattedValue }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
+    <app-autocomplete
+      label="Тип диагноза"
+      formControlName="diagnosisType"
+      [options]="diagnosisTypes"
+    >
+    </app-autocomplete>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Диагноз</mat-label>
-      <input matInput type="text" [formControl]="diagnosis" [matAutocomplete]="autoDiagnosis">
-      <mat-autocomplete #autoDiagnosis="matAutocomplete">
-        <mat-option *ngFor="let disease of diseases$ | async" [value]="disease.formattedValue">
-          {{ disease.formattedValue }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
+    <app-autocomplete
+      label="Диагноз"
+      formControlName="diagnosis"
+      [options]="searchDiseases.bind(this)"
+    >
+    </app-autocomplete>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Характер заболевания</mat-label>
-      <input matInput type="text" [formControl]="diseaseCharacter" [matAutocomplete]="autoDiseaseCharacter">
-      <mat-autocomplete #autoDiseaseCharacter="matAutocomplete">
-        <mat-option *ngFor="let character of filteredDiseaseCharacters$ | async" [value]="character.formattedValue">
-          {{ character.formattedValue }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
+    <app-autocomplete
+      label="Характер заболевания"
+      formControlName="diseaseCharacter"
+      [options]="diseaseCharacters"
+    >
+    </app-autocomplete>
 
     <mat-form-field appearance="fill">
       <mat-label>Дата</mat-label>
-      <input matInput [matDatepicker]="picker" [formControl]="date">
+      <input matInput [matDatepicker]="picker" formControlName="date" />
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
   </div>
 
   <div class="form-row">
-    <mat-form-field appearance="fill">
-      <mat-label>Диспансерный учет</mat-label>
-      <input matInput type="text" [formControl]="dispensaryAccount" [matAutocomplete]="autoDispensaryAccount">
-      <mat-autocomplete #autoDispensaryAccount="matAutocomplete">
-        <mat-option *ngFor="let account of filteredDispensaryAccounts$ | async" [value]="account.formattedValue">
-          {{ account.formattedValue }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
+    <app-autocomplete
+      label="Диспансерный учет"
+      formControlName="dispensaryAccount"
+      [options]="dispensaryAccounts"
+    >
+    </app-autocomplete>
 
     <mat-form-field appearance="fill">
       <mat-label>Травма</mat-label>
-      <input matInput [formControl]="trauma">
+      <input matInput formControlName="trauma" />
     </mat-form-field>
 
     <mat-form-field appearance="fill">
       <mat-label>Внешняя причина</mat-label>
-      <input matInput [formControl]="externalCause">
+      <input matInput formControlName="externalCause" />
     </mat-form-field>
   </div>
 
   <div class="form-row">
     <mat-form-field appearance="fill">
       <mat-label>Клинический диагноз</mat-label>
-      <input matInput [formControl]="clinicalDiagnosis">
+      <input matInput formControlName="clinicalDiagnosis" />
     </mat-form-field>
   </div>
 
   <div class="form-row">
     <mat-form-field appearance="fill">
       <mat-label>Комментарий</mat-label>
-      <input matInput [formControl]="comment">
+      <input matInput formControlName="comment" />
     </mat-form-field>
   </div>
 
