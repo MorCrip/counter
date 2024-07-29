@@ -15,12 +15,16 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSortModule } from '@angular/material/sort';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { DatepickerComponent } from './datepicker/datepicker.component';
+import { DatepickerCommunicationService } from './datepicker-communication.service';
+import { CustomCalendarHeaderComponent } from './custom-calendar-header/custom-calendar-header.component';
+import { NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule } from '@angular-material-components/datetime-picker';
 
 @NgModule({
   declarations: [
@@ -28,7 +32,9 @@ import { MatIconModule } from '@angular/material/icon';
     CounterComponent,
     CurrencyTableComponent,
     DiagnosisFormComponent,
-    AutocompleteComponent
+    AutocompleteComponent,
+    DatepickerComponent,
+    CustomCalendarHeaderComponent,
   ],
   imports: [
     BrowserModule,
@@ -47,8 +53,14 @@ import { MatIconModule } from '@angular/material/icon';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
+    NgxMatDatetimePickerModule,
+    NgxMatNativeDateModule,
+    NgxMatTimepickerModule,
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [
+    DatepickerCommunicationService,
+    { provide: MAT_DATE_LOCALE, useValue: 'ru-RU' },
+  ],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

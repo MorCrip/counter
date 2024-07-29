@@ -89,7 +89,9 @@ export class AutocompleteComponent<T extends Formattable>
   }
 
   public writeValue(value: string | null): void {
-    this.control.setValue(value ?? '', { emitEvent: false });
+    if (this.control && this.control.value != value) {
+      this.control.setValue(value, { emitEvent: false });
+    }
   }
 
   public registerOnChange(fn: (value: string | null) => void): void {
