@@ -21,12 +21,19 @@
     >
     </app-autocomplete>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Дата</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="date" />
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker #picker></mat-datepicker>
-    </mat-form-field>
+    <app-datepicker
+      formControlName="startDate"
+      label="Дата с"
+      [minDate]="minDate"
+      [maxDate]="maxDate"
+    ></app-datepicker>
+
+    <app-datepicker
+      formControlName="endDate"
+      label="Дата по"
+      [minDate]="minDate"
+      [maxDate]="maxDate"
+    ></app-datepicker>
   </div>
 
   <div class="form-row">
