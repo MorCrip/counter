@@ -22,9 +22,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DatepickerComponent } from './datepicker/datepicker.component';
-import { DatepickerCommunicationService } from './datepicker-communication.service';
-import { CustomCalendarHeaderComponent } from './custom-calendar-header/custom-calendar-header.component';
-import { NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule } from '@angular-material-components/datetime-picker';
+import { DatepickerCommunicationService } from './datepicker/shared/service/datepicker-communication.service';
+import { CustomCalendarHeaderComponent } from './datepicker/shared/custom-calendar-header/custom-calendar-header.component';
+import {
+  NgxMatDatetimePickerModule,
+  NgxMatNativeDateModule,
+  NgxMatTimepickerModule,
+} from '@angular-material-components/datetime-picker';
 
 @NgModule({
   declarations: [
@@ -57,10 +61,7 @@ import { NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerMod
     NgxMatNativeDateModule,
     NgxMatTimepickerModule,
   ],
-  providers: [
-    DatepickerCommunicationService,
-    { provide: MAT_DATE_LOCALE, useValue: 'ru-RU' },
-  ],
+  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'ru-RU' }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

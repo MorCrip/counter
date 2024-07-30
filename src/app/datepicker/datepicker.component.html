@@ -1,14 +1,21 @@
-<mat-form-field appearance="fill">
-  <mat-label>{{ label }}</mat-label>
-  <input
-    matInput
-    [ngxMatDatetimePicker]="picker"
-    [formControl]="control"
-    [min]="minDate"
-    [max]="maxDate"
-  />
-  <mat-datepicker-toggle matSuffix [for]="$any(picker)"></mat-datepicker-toggle>
-  <ngx-mat-datetime-picker #picker [calendarHeaderComponent]="customCalendarHeader">
-  </ngx-mat-datetime-picker>
-  <mat-error *ngIf="control.hasError('dateRange')">{{ control.getError('dateRange') }}</mat-error>
-</mat-form-field>
+<div class="datepicker">
+  <mat-form-field appearance="fill">
+    <mat-label>{{ label }}</mat-label>
+    <input
+      matInput
+      [matDatepicker]="picker"
+      [formControl]="control"
+      [min]="minDate"
+      [max]="maxDate"
+    />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker [calendarHeaderComponent]="customCalendarHeader"></mat-datepicker>
+    <mat-error *ngIf="control.hasError('dateRange')">{{
+      control.getError("dateRange")
+    }}</mat-error>
+  </mat-form-field>
+
+  <mat-form-field class="timepicker" appearance="fill"
+    ><input matInput type="time" [formControl]="control"
+  /></mat-form-field>
+</div>

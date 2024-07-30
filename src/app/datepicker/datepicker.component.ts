@@ -13,14 +13,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { distinctUntilChanged, Subject, takeUntil, tap } from 'rxjs';
-import { DatepickerCommunicationService } from '../datepicker-communication.service';
-import { CustomCalendarHeaderComponent } from '../custom-calendar-header/custom-calendar-header.component';
-
+import { DatepickerCommunicationService } from './shared/service/datepicker-communication.service';
+import { CustomCalendarHeaderComponent } from './shared/custom-calendar-header/custom-calendar-header.component';
 
 @Component({
   selector: 'app-datepicker',
   templateUrl: './datepicker.component.html',
   styleUrls: ['./datepicker.component.scss'],
+  providers: [DatepickerCommunicationService],
 })
 export class DatepickerComponent
   implements ControlValueAccessor, OnInit, OnDestroy
@@ -29,13 +29,13 @@ export class DatepickerComponent
   @Input() public minDate: Date | null = null;
   @Input() public maxDate: Date | null = null;
 
-  protected readonly customCalendarHeader = CustomCalendarHeaderComponent;
-
   protected control: FormControl = new FormControl();
   private _isDisabled: boolean = false;
   private readonly _destroy$ = new Subject<void>();
   private _onChange: (value: Date | null) => void = () => {};
   private _onTouched: () => void = () => {};
+
+  protected readonly customCalendarHeader = CustomCalendarHeaderComponent;
 
   constructor(
     @Optional() @Self() private readonly ngControl: NgControl,
@@ -49,9 +49,11 @@ export class DatepickerComponent
   public ngOnInit(): void {
     this.setFormControl();
 
-    this.datepickerCommunicationService.selectToday$.subscribe(() => {
-      this.selectToday();
-    });
+    this.datepickerCommunicationService.selectToday$
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(() => {
+        this.selectToday();
+      });
 
     this.control.valueChanges
       .pipe(

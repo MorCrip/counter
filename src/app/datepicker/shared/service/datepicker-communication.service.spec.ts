@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { DatepickerCommunicationService } from './datepicker-communication.service';
+import { DatepickerCommunicationService } from './datepicker/shared/service/datepicker-communication.service';
 
 describe('DatepickerCommunicationService', () => {
   let service: DatepickerCommunicationService;

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DatepickerCommunicationService } from '../datepicker-communication.service';
+import { DatepickerCommunicationService } from '../service/datepicker-communication.service';
 
 @Component({
   selector: 'app-custom-calendar-header',
